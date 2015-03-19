@@ -11,5 +11,7 @@
 @interface MainViewController : UIViewController
 
 @property (strong, nonatomic) NSString *sessionId;
+@property (nonatomic) NSInteger guessPerWord;
+@property (nonatomic) NSInteger nuberOfWords;
 
 @end
