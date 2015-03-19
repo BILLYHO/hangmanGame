@@ -22,6 +22,8 @@
 @property (nonatomic) NSInteger wordsRemain;
 @property (nonatomic) NSInteger wrongGuessCount;
 
+@property (strong, nonatomic) MBProgressHUD *hud;
+
 @end
 
 @implementation MainViewController
@@ -54,9 +56,22 @@
     _usedLabel.text = [_usedLabel.text stringByAppendingString:[NSString stringWithFormat:@"%@, ", character]];
 }
 
+- (void)showHudWithText:(NSString *)text
+{
+    _hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    _hud.mode = MBProgressHUDModeIndeterminate;
+    _hud.labelText = text;
+}
+
+- (void)showHudTextOnly:(NSString *)text
+{
+    _hud.mode = MBProgressHUDModeText;
+    _hud.labelText = text;
+}
+
 - (IBAction)requestWord:(id)sender
 {
-    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    [self showHudWithText:@"Getting word..."];
     
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     manager.requestSerializer = [AFJSONRequestSerializer serializer];
@@ -84,7 +99,7 @@
 
 - (void)guessWord:(NSString *)word
 {
-    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    [self showHudWithText:@"Checking word..."];
     
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     manager.requestSerializer = [AFJSONRequestSerializer serializer];
@@ -99,7 +114,16 @@
          NSLog(@"JSON: %@", responseObject);
          _currentWord.text = [responseObject valueForKeyPath:@"data.word"];
          NSLog(@"%@",_currentWord.text);
-         _wrongGuessCount =  [[responseObject valueForKeyPath:@"data.wrongGuessCountOfCurrentWord"] integerValue];
+         
+         
+         NSInteger currentWrongCount = [[responseObject valueForKeyPath:@"data.wrongGuessCountOfCurrentWord"] integerValue];
+         
+         if (_wrongGuessCount == currentWrongCount) {
+             [self showHudTextOnly:@"Bingo!"];
+         } else {
+             [self showHudTextOnly:@"Word not found"];
+             _wrongGuessCount = currentWrongCount;
+         }
          [self updateGuessLeftLabel];
          [self updateScore];
      }
@@ -124,8 +148,7 @@
      {
          NSLog(@"JSON: %@", responseObject);
          _scoreLabel.text = [NSString stringWithFormat:@"Score: %@", [responseObject valueForKeyPath:@"data.score"]];
-         [MBProgressHUD hideHUDForView:self.view animated:YES];
-         
+         [_hud hide:YES];
      }
           failure:
      ^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -135,7 +158,7 @@
 
 - (IBAction)submitScore:(id)sender
 {
-     [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    [self showHudWithText:@"Submitting score..."];
     
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     manager.requestSerializer = [AFJSONRequestSerializer serializer];
@@ -149,7 +172,7 @@
      {
          NSLog(@"JSON: %@", responseObject);
          _scoreLabel.text = [NSString stringWithFormat:@"Score: %@", [responseObject valueForKeyPath:@"data.score"]];
-         [MBProgressHUD hideHUDForView:self.view animated:YES];
+         [_hud hide:YES];
          [self goBack:sender];
      }
           failure:
@@ -178,7 +201,12 @@
 
 - (void)textFieldDidEndEditing:(UITextField *)textField
 {
-    if (textField.text.length > 1)
+    if (_wrongGuessCount == _guessPerWord)
+    {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"No guess left! Please get next word!" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+        [alert show];
+    }
+    else if (textField.text.length > 1)
     {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"One character per time!" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
         [alert show];
