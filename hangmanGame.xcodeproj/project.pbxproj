@@ -25,6 +25,7 @@
 		28F35B011AB9C90F009D5682 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 28F35B001AB9C90F009D5682 /* MBProgressHUD.m */; };
 		28F35B041AB9CBB3009D5682 /* StartViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 28F35B031AB9CBB3009D5682 /* StartViewController.m */; };
 		28F35B071AB9CC21009D5682 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 28F35B061AB9CC21009D5682 /* MainViewController.m */; };
+		28F35B0A1ABABEBB009D5682 /* NetworkEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 28F35B091ABABEBB009D5682 /* NetworkEngine.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +75,8 @@
 		28F35B031AB9CBB3009D5682 /* StartViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StartViewController.m; sourceTree = "<group>"; };
 		28F35B051AB9CC21009D5682 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		28F35B061AB9CC21009D5682 /* MainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
+		28F35B081ABABEBB009D5682 /* NetworkEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkEngine.h; sourceTree = "<group>"; };
+		28F35B091ABABEBB009D5682 /* NetworkEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NetworkEngine.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,6 +127,8 @@
 				28F35B031AB9CBB3009D5682 /* StartViewController.m */,
 				28F35B051AB9CC21009D5682 /* MainViewController.h */,
 				28F35B061AB9CC21009D5682 /* MainViewController.m */,
+				28F35B081ABABEBB009D5682 /* NetworkEngine.h */,
+				28F35B091ABABEBB009D5682 /* NetworkEngine.m */,
 				28F35A9A1AB97972009D5682 /* Images.xcassets */,
 				28F35A9C1AB97972009D5682 /* LaunchScreen.xib */,
 				28F35A8D1AB97972009D5682 /* Supporting Files */,
@@ -298,6 +303,7 @@
 				28F35ACA1AB97A30009D5682 /* AFNetworkReachabilityManager.m in Sources */,
 				28F35ACE1AB97A30009D5682 /* AFURLResponseSerialization.m in Sources */,
 				28F35ACC1AB97A30009D5682 /* AFURLConnectionOperation.m in Sources */,
+				28F35B0A1ABABEBB009D5682 /* NetworkEngine.m in Sources */,
 				28F35ACB1AB97A30009D5682 /* AFSecurityPolicy.m in Sources */,
 				28F35AC91AB97A30009D5682 /* AFHTTPSessionManager.m in Sources */,
 				28F35ACD1AB97A30009D5682 /* AFURLRequestSerialization.m in Sources */,

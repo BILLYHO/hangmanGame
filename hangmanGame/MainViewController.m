@@ -9,6 +9,7 @@
 #import "MainViewController.h"
 #import "AFNetworking.h"
 #import "MBProgressHUD.h"
+#import "NetworkEngine.h"
 
 @interface MainViewController () <UITextFieldDelegate>
 @property (strong, nonatomic) IBOutlet UILabel *wordsRemainLabel;
@@ -73,27 +74,42 @@
 {
     [self showHudWithText:@"Getting word..."];
     
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    manager.requestSerializer = [AFJSONRequestSerializer serializer];
-    NSDictionary *parameters = @{@"sessionId": _sessionId, @"action":@"nextWord"};
+//    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+//    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+//    NSDictionary *parameters = @{@"sessionId": _sessionId, @"action":@"nextWord"};
+//    
+//    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
+//          success:^(AFHTTPRequestOperation *operation, id responseObject)
+//     {
+//         NSLog(@"JSON: %@", responseObject);
+//         _currentWord.text = [responseObject valueForKeyPath:@"data.word"];
+//         NSLog(@"%@",_currentWord.text);
+//         _wordsRemain--;
+//         _wrongGuessCount =  [[responseObject valueForKeyPath:@"data.wrongGuessCountOfCurrentWord"] integerValue];
+//         [self updateWordRemainLabel];
+//         [self updateGuessLeftLabel];
+//         [self updateScore];
+//         _usedLabel.text = @"Used: ";
+//     }
+//          failure:
+//     ^(AFHTTPRequestOperation *operation, NSError *error) {
+//         NSLog(@"Error: %@", error);
+//     }];
     
-    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
-          success:^(AFHTTPRequestOperation *operation, id responseObject)
-     {
-         NSLog(@"JSON: %@", responseObject);
-         _currentWord.text = [responseObject valueForKeyPath:@"data.word"];
-         NSLog(@"%@",_currentWord.text);
-         _wordsRemain--;
-         _wrongGuessCount =  [[responseObject valueForKeyPath:@"data.wrongGuessCountOfCurrentWord"] integerValue];
-         [self updateWordRemainLabel];
-         [self updateGuessLeftLabel];
-         [self updateScore];
-         _usedLabel.text = @"Used: ";
-     }
-          failure:
-     ^(AFHTTPRequestOperation *operation, NSError *error) {
-         NSLog(@"Error: %@", error);
-     }];
+    [NetworkEngine performAction:@"nextWord" sessionId:_sessionId
+        success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"JSON: %@", responseObject);
+            _currentWord.text = [responseObject valueForKeyPath:@"data.word"];
+            NSLog(@"%@",_currentWord.text);
+            _wordsRemain--;
+            _wrongGuessCount =  [[responseObject valueForKeyPath:@"data.wrongGuessCountOfCurrentWord"] integerValue];
+            [self updateWordRemainLabel];
+            [self updateGuessLeftLabel];
+            [self updateScore];
+            _usedLabel.text = @"Used: ";
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error: %@", error);
+        }];
 }
 
 
@@ -101,84 +117,124 @@
 {
     [self showHudWithText:@"Checking word..."];
     
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+//    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+//    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+//    
+//    
+//    NSDictionary *parameters = @{@"sessionId": _sessionId, @"action":@"guessWord", @"guess":word};
+//    
+//    
+//    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
+//          success:^(AFHTTPRequestOperation *operation, id responseObject)
+//     {
+//         NSLog(@"JSON: %@", responseObject);
+//         _currentWord.text = [responseObject valueForKeyPath:@"data.word"];
+//         NSLog(@"%@",_currentWord.text);
+//         
+//         
+//         NSInteger currentWrongCount = [[responseObject valueForKeyPath:@"data.wrongGuessCountOfCurrentWord"] integerValue];
+//         
+//         if (_wrongGuessCount == currentWrongCount) {
+//             [self showHudTextOnly:@"Bingo!"];
+//         } else {
+//             [self showHudTextOnly:@"Word not found"];
+//             _wrongGuessCount = currentWrongCount;
+//         }
+//         [self updateGuessLeftLabel];
+//         [self updateScore];
+//     }
+//          failure:
+//     ^(AFHTTPRequestOperation *operation, NSError *error) {
+//         NSLog(@"Error: %@", error);
+//     }];
     
-    
-    NSDictionary *parameters = @{@"sessionId": _sessionId, @"action":@"guessWord", @"guess":word};
-    
-    
-    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
-          success:^(AFHTTPRequestOperation *operation, id responseObject)
-     {
-         NSLog(@"JSON: %@", responseObject);
-         _currentWord.text = [responseObject valueForKeyPath:@"data.word"];
-         NSLog(@"%@",_currentWord.text);
-         
-         
-         NSInteger currentWrongCount = [[responseObject valueForKeyPath:@"data.wrongGuessCountOfCurrentWord"] integerValue];
-         
-         if (_wrongGuessCount == currentWrongCount) {
-             [self showHudTextOnly:@"Bingo!"];
-         } else {
-             [self showHudTextOnly:@"Word not found"];
-             _wrongGuessCount = currentWrongCount;
-         }
-         [self updateGuessLeftLabel];
-         [self updateScore];
-     }
-          failure:
-     ^(AFHTTPRequestOperation *operation, NSError *error) {
-         NSLog(@"Error: %@", error);
-     }];
+    [NetworkEngine guessWord:word sessionId:_sessionId
+        success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"JSON: %@", responseObject);
+            _currentWord.text = [responseObject valueForKeyPath:@"data.word"];
+            NSLog(@"%@",_currentWord.text);
+            
+            
+            NSInteger currentWrongCount = [[responseObject valueForKeyPath:@"data.wrongGuessCountOfCurrentWord"] integerValue];
+            
+            if (_wrongGuessCount == currentWrongCount) {
+                [self showHudTextOnly:@"Bingo!"];
+            } else {
+                [self showHudTextOnly:@"Word not found"];
+                _wrongGuessCount = currentWrongCount;
+            }
+            [self updateGuessLeftLabel];
+            [self updateScore];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error: %@", error);
+    }];
 }
 
 
 - (void)updateScore
 {
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+//    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+//    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+//    
+//    
+//    NSDictionary *parameters = @{@"sessionId": _sessionId, @"action":@"getResult"};
+//    
+//    
+//    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
+//          success:^(AFHTTPRequestOperation *operation, id responseObject)
+//     {
+//         NSLog(@"JSON: %@", responseObject);
+//         _scoreLabel.text = [NSString stringWithFormat:@"Score: %@", [responseObject valueForKeyPath:@"data.score"]];
+//         [_hud hide:YES];
+//     }
+//          failure:
+//     ^(AFHTTPRequestOperation *operation, NSError *error) {
+//         NSLog(@"Error: %@", error);
+//     }];
     
-    
-    NSDictionary *parameters = @{@"sessionId": _sessionId, @"action":@"getResult"};
-    
-    
-    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
-          success:^(AFHTTPRequestOperation *operation, id responseObject)
-     {
-         NSLog(@"JSON: %@", responseObject);
-         _scoreLabel.text = [NSString stringWithFormat:@"Score: %@", [responseObject valueForKeyPath:@"data.score"]];
-         [_hud hide:YES];
-     }
-          failure:
-     ^(AFHTTPRequestOperation *operation, NSError *error) {
-         NSLog(@"Error: %@", error);
-     }];
+    [NetworkEngine performAction:@"getResult" sessionId:_sessionId
+        success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"JSON: %@", responseObject);
+            _scoreLabel.text = [NSString stringWithFormat:@"Score: %@", [responseObject valueForKeyPath:@"data.score"]];
+            [_hud hide:YES];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error: %@", error);
+    }];
 }
 
 - (IBAction)submitScore:(id)sender
 {
     [self showHudWithText:@"Submitting score..."];
     
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+//    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+//    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+//    
+//    
+//    NSDictionary *parameters = @{@"sessionId": _sessionId, @"action":@"submitResult"};
+//    
+//    
+//    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
+//          success:^(AFHTTPRequestOperation *operation, id responseObject)
+//     {
+//         NSLog(@"JSON: %@", responseObject);
+//         _scoreLabel.text = [NSString stringWithFormat:@"Score: %@", [responseObject valueForKeyPath:@"data.score"]];
+//         [_hud hide:YES];
+//         [self goBack:sender];
+//     }
+//          failure:
+//     ^(AFHTTPRequestOperation *operation, NSError *error) {
+//         NSLog(@"Error: %@", error);
+//     }];
     
-    
-    NSDictionary *parameters = @{@"sessionId": _sessionId, @"action":@"submitResult"};
-    
-    
-    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
-          success:^(AFHTTPRequestOperation *operation, id responseObject)
-     {
-         NSLog(@"JSON: %@", responseObject);
-         _scoreLabel.text = [NSString stringWithFormat:@"Score: %@", [responseObject valueForKeyPath:@"data.score"]];
-         [_hud hide:YES];
-         [self goBack:sender];
-     }
-          failure:
-     ^(AFHTTPRequestOperation *operation, NSError *error) {
+    [NetworkEngine performAction:@"submitResult" sessionId:_sessionId
+        success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"JSON: %@", responseObject);
+            _scoreLabel.text = [NSString stringWithFormat:@"Score: %@", [responseObject valueForKeyPath:@"data.score"]];
+            [_hud hide:YES];
+            [self goBack:sender];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
          NSLog(@"Error: %@", error);
-     }];
+    }];
 }
 
 - (IBAction)goBack:(id)sender

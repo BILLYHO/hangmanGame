@@ -9,7 +9,7 @@
 #import "StartViewController.h"
 #import "MainViewController.h"
 
-#import "AFNetworking.h"
+#import "NetworkEngine.h"
 #import "MBProgressHUD.h"
 
 @interface StartViewController ()
@@ -33,34 +33,23 @@
 {
     MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
     hud.labelText = @"Starting";
-    
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    manager.requestSerializer = [AFJSONRequestSerializer serializer];
-    
-    
-    NSDictionary *parameters = @{@"playerId": @"billyho92@foxmail.com", @"action":@"startGame"};
-    
-    
-    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
-          success:^(AFHTTPRequestOperation *operation, id responseObject)
-     {
-         NSLog(@"JSON: %@", responseObject);
 
-         
-         UIStoryboard *storyBoard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-         MainViewController *mainViewController = (MainViewController *)[storyBoard instantiateViewControllerWithIdentifier:@"mainViewController"];
-         mainViewController.sessionId = [responseObject objectForKey:@"sessionId"];
-         mainViewController.guessPerWord = [[responseObject valueForKeyPath:@"data.numberOfGuessAllowedForEachWord"] integerValue];
-         mainViewController.nuberOfWords = [[responseObject valueForKeyPath:@"data.numberOfWordsToGuess"] integerValue];
-         
-         [self presentViewController:mainViewController animated:YES completion:nil];
-         [hud hide:YES];
-     }
-          failure:
-     ^(AFHTTPRequestOperation *operation, NSError *error) {
-         NSLog(@"Error: %@", error);
-     }];
+    [NetworkEngine startGameWhenSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"JSON: %@", responseObject);
+        
+        
+        UIStoryboard *storyBoard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+        MainViewController *mainViewController = (MainViewController *)[storyBoard instantiateViewControllerWithIdentifier:@"mainViewController"];
+        mainViewController.sessionId = [responseObject objectForKey:@"sessionId"];
+        mainViewController.guessPerWord = [[responseObject valueForKeyPath:@"data.numberOfGuessAllowedForEachWord"] integerValue];
+        mainViewController.nuberOfWords = [[responseObject valueForKeyPath:@"data.numberOfWordsToGuess"] integerValue];
+        
+        [self presentViewController:mainViewController animated:YES completion:nil];
+        [hud hide:YES];
 
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error: %@", error);
+    }];
 }
 
 @end
