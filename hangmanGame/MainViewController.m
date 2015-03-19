@@ -82,6 +82,10 @@
 #pragma Network Action
 - (IBAction)requestWord:(id)sender
 {
+    if (_wordsRemain <= 0) {
+        [self showErrorMessage:@"No more word to guess, please submit your score"];
+    }
+    
     [self showHudWithText:@"Getting word..."];
     
     [NetworkEngine performAction:@"nextWord" sessionId:_sessionId
