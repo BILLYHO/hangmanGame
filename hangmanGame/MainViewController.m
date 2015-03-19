@@ -12,12 +12,13 @@
 #import "NetworkEngine.h"
 
 @interface MainViewController () <UITextFieldDelegate>
+
 @property (strong, nonatomic) IBOutlet UILabel *wordsRemainLabel;
 @property (strong, nonatomic) IBOutlet UILabel *guessLeftLabel;
 @property (strong, nonatomic) IBOutlet UILabel *scoreLabel;
 @property (strong, nonatomic) IBOutlet UILabel *usedLabel;
 
-@property (strong, nonatomic) IBOutlet UILabel *currentWord;
+@property (strong, nonatomic) IBOutlet UILabel *currentWordLabel;
 @property (strong, nonatomic) IBOutlet UITextField *guessTextField;
 
 @property (nonatomic) NSInteger wordsRemain;
@@ -42,21 +43,24 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (void)updateWordRemainLabel
+#pragma Update UI
+- (void)updateUIWithCurrentWord:(NSString *)word usedCharacter:(NSString *)character reset:(BOOL)reset
 {
-    _wordsRemainLabel.text = [NSString stringWithFormat:@"Words remains: %ld", _wordsRemain];
-}
-
-- (void)updateGuessLeftLabel
-{
+    if (reset) {
+        _wordsRemain--;
+        _wrongGuessCount = 0;
+        _usedLabel.text = @"Used: ";
+        _wordsRemainLabel.text = [NSString stringWithFormat:@"Words remains: %ld", _wordsRemain];
+    } else {
+        _usedLabel.text = [_usedLabel.text stringByAppendingString:[NSString stringWithFormat:@"%@, ", character]];
+    }
+    
+    _currentWordLabel.text = word;
     _guessLeftLabel.text = [NSString stringWithFormat:@"Guess left: %ld", _guessPerWord - _wrongGuessCount];
+    [self updateScore];
 }
 
-- (void)updateUsedLabel:(NSString *)character
-{
-    _usedLabel.text = [_usedLabel.text stringByAppendingString:[NSString stringWithFormat:@"%@, ", character]];
-}
-
+#pragma Hud Function
 - (void)showHudWithText:(NSString *)text
 {
     _hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
@@ -70,43 +74,22 @@
     _hud.labelText = text;
 }
 
+- (void)hidHud
+{
+    [_hud hide:YES];
+}
+
+#pragma Network Action
 - (IBAction)requestWord:(id)sender
 {
     [self showHudWithText:@"Getting word..."];
     
-//    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-//    manager.requestSerializer = [AFJSONRequestSerializer serializer];
-//    NSDictionary *parameters = @{@"sessionId": _sessionId, @"action":@"nextWord"};
-//    
-//    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
-//          success:^(AFHTTPRequestOperation *operation, id responseObject)
-//     {
-//         NSLog(@"JSON: %@", responseObject);
-//         _currentWord.text = [responseObject valueForKeyPath:@"data.word"];
-//         NSLog(@"%@",_currentWord.text);
-//         _wordsRemain--;
-//         _wrongGuessCount =  [[responseObject valueForKeyPath:@"data.wrongGuessCountOfCurrentWord"] integerValue];
-//         [self updateWordRemainLabel];
-//         [self updateGuessLeftLabel];
-//         [self updateScore];
-//         _usedLabel.text = @"Used: ";
-//     }
-//          failure:
-//     ^(AFHTTPRequestOperation *operation, NSError *error) {
-//         NSLog(@"Error: %@", error);
-//     }];
-    
     [NetworkEngine performAction:@"nextWord" sessionId:_sessionId
         success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"JSON: %@", responseObject);
-            _currentWord.text = [responseObject valueForKeyPath:@"data.word"];
-            NSLog(@"%@",_currentWord.text);
-            _wordsRemain--;
-            _wrongGuessCount =  [[responseObject valueForKeyPath:@"data.wrongGuessCountOfCurrentWord"] integerValue];
-            [self updateWordRemainLabel];
-            [self updateGuessLeftLabel];
-            [self updateScore];
-            _usedLabel.text = @"Used: ";
+            [self updateUIWithCurrentWord:[responseObject valueForKeyPath:@"data.word"]
+                            usedCharacter:nil
+                                    reset:YES];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error: %@", error);
         }];
@@ -117,54 +100,22 @@
 {
     [self showHudWithText:@"Checking word..."];
     
-//    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-//    manager.requestSerializer = [AFJSONRequestSerializer serializer];
-//    
-//    
-//    NSDictionary *parameters = @{@"sessionId": _sessionId, @"action":@"guessWord", @"guess":word};
-//    
-//    
-//    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
-//          success:^(AFHTTPRequestOperation *operation, id responseObject)
-//     {
-//         NSLog(@"JSON: %@", responseObject);
-//         _currentWord.text = [responseObject valueForKeyPath:@"data.word"];
-//         NSLog(@"%@",_currentWord.text);
-//         
-//         
-//         NSInteger currentWrongCount = [[responseObject valueForKeyPath:@"data.wrongGuessCountOfCurrentWord"] integerValue];
-//         
-//         if (_wrongGuessCount == currentWrongCount) {
-//             [self showHudTextOnly:@"Bingo!"];
-//         } else {
-//             [self showHudTextOnly:@"Word not found"];
-//             _wrongGuessCount = currentWrongCount;
-//         }
-//         [self updateGuessLeftLabel];
-//         [self updateScore];
-//     }
-//          failure:
-//     ^(AFHTTPRequestOperation *operation, NSError *error) {
-//         NSLog(@"Error: %@", error);
-//     }];
-    
     [NetworkEngine guessWord:word sessionId:_sessionId
         success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"JSON: %@", responseObject);
-            _currentWord.text = [responseObject valueForKeyPath:@"data.word"];
-            NSLog(@"%@",_currentWord.text);
-            
             
             NSInteger currentWrongCount = [[responseObject valueForKeyPath:@"data.wrongGuessCountOfCurrentWord"] integerValue];
             
             if (_wrongGuessCount == currentWrongCount) {
                 [self showHudTextOnly:@"Bingo!"];
             } else {
-                [self showHudTextOnly:@"Word not found"];
+                [self showHudTextOnly:@"Word not found!"];
                 _wrongGuessCount = currentWrongCount;
             }
-            [self updateGuessLeftLabel];
-            [self updateScore];
+            
+            [self updateUIWithCurrentWord:[responseObject valueForKeyPath:@"data.word"]
+                            usedCharacter:word
+                                    reset:NO];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error: %@", error);
     }];
@@ -173,30 +124,11 @@
 
 - (void)updateScore
 {
-//    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-//    manager.requestSerializer = [AFJSONRequestSerializer serializer];
-//    
-//    
-//    NSDictionary *parameters = @{@"sessionId": _sessionId, @"action":@"getResult"};
-//    
-//    
-//    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
-//          success:^(AFHTTPRequestOperation *operation, id responseObject)
-//     {
-//         NSLog(@"JSON: %@", responseObject);
-//         _scoreLabel.text = [NSString stringWithFormat:@"Score: %@", [responseObject valueForKeyPath:@"data.score"]];
-//         [_hud hide:YES];
-//     }
-//          failure:
-//     ^(AFHTTPRequestOperation *operation, NSError *error) {
-//         NSLog(@"Error: %@", error);
-//     }];
-    
     [NetworkEngine performAction:@"getResult" sessionId:_sessionId
         success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"JSON: %@", responseObject);
             _scoreLabel.text = [NSString stringWithFormat:@"Score: %@", [responseObject valueForKeyPath:@"data.score"]];
-            [_hud hide:YES];
+            [self hidHud];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error: %@", error);
     }];
@@ -206,31 +138,10 @@
 {
     [self showHudWithText:@"Submitting score..."];
     
-//    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-//    manager.requestSerializer = [AFJSONRequestSerializer serializer];
-//    
-//    
-//    NSDictionary *parameters = @{@"sessionId": _sessionId, @"action":@"submitResult"};
-//    
-//    
-//    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
-//          success:^(AFHTTPRequestOperation *operation, id responseObject)
-//     {
-//         NSLog(@"JSON: %@", responseObject);
-//         _scoreLabel.text = [NSString stringWithFormat:@"Score: %@", [responseObject valueForKeyPath:@"data.score"]];
-//         [_hud hide:YES];
-//         [self goBack:sender];
-//     }
-//          failure:
-//     ^(AFHTTPRequestOperation *operation, NSError *error) {
-//         NSLog(@"Error: %@", error);
-//     }];
-    
     [NetworkEngine performAction:@"submitResult" sessionId:_sessionId
         success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"JSON: %@", responseObject);
-            _scoreLabel.text = [NSString stringWithFormat:@"Score: %@", [responseObject valueForKeyPath:@"data.score"]];
-            [_hud hide:YES];
+            [self hidHud];
             [self goBack:sender];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
          NSLog(@"Error: %@", error);
@@ -243,6 +154,36 @@
 }
 
 
+#pragma Validate Input
+- (BOOL)validateInput:(NSString *)input
+{
+    if (_wrongGuessCount == _guessPerWord) {
+        [self showErrorMessage:@"No guess left! Please get next word!"];
+        return NO;
+    }
+    
+    if (input.length > 1) {
+        [self showErrorMessage:@"One character per time!"];
+        return NO;
+    }
+
+    NSString *myRegex = @"[A-Za-z]";
+    NSPredicate *myTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", myRegex];
+    BOOL valid = [myTest evaluateWithObject:input];
+    if (valid) {
+        return YES;
+    } else {
+        [self showErrorMessage:@"Invalid character!"];
+        return NO;
+    }
+}
+
+- (void)showErrorMessage:(NSString *)message
+{
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:message delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+    [alert show];
+}
+
 #pragma UITextFieldDelegate
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField
@@ -250,37 +191,17 @@
     textField.text = nil;
 }
 
-- (BOOL)textFieldShouldReturn:(UITextField *)textField {
+- (BOOL)textFieldShouldReturn:(UITextField *)textField
+{
     [textField resignFirstResponder];
     return YES;
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField
-{
-    if (_wrongGuessCount == _guessPerWord)
-    {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"No guess left! Please get next word!" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
-        [alert show];
-    }
-    else if (textField.text.length > 1)
-    {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"One character per time!" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
-        [alert show];
-    }
-    else
-    {
-        NSString *myRegex = @"[A-Za-z]";
-        NSPredicate *myTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", myRegex];
-        NSString *string = textField.text;
-        BOOL valid = [myTest evaluateWithObject:string];
-        if (valid) {
-            NSLog(@"%@", [textField.text uppercaseString]);
-            [self guessWord:[textField.text uppercaseString]];
-            [self updateUsedLabel:[textField.text uppercaseString]];
-        } else {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"Invalid character!" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
-            [alert show];
-        }
+{    
+    if([self validateInput:textField.text]) {
+        NSLog(@"%@", [textField.text uppercaseString]);
+        [self guessWord:[textField.text uppercaseString]];
     }
 }
 

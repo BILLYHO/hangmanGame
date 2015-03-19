@@ -32,11 +32,10 @@
 - (IBAction)startGame:(id)sender
 {
     MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
-    hud.labelText = @"Starting";
+    hud.labelText = @"Starting...";
 
     [NetworkEngine startGameWhenSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"JSON: %@", responseObject);
-        
         
         UIStoryboard *storyBoard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
         MainViewController *mainViewController = (MainViewController *)[storyBoard instantiateViewControllerWithIdentifier:@"mainViewController"];
