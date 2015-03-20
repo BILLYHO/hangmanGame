@@ -84,6 +84,7 @@
 {
     if (_wordsRemain <= 0) {
         [self showErrorMessage:@"No more word to guess, please submit your score"];
+        return;
     }
     
     [self showHudWithText:@"Getting word..."];

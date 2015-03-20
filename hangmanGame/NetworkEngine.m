@@ -8,6 +8,8 @@
 
 #import "NetworkEngine.h"
 
+#define BASEURL @"https://strikingly-hangman.herokuapp.com/game/on"
+
 @implementation NetworkEngine
 
 + (void)startGameWhenSuccess:(void (^)(AFHTTPRequestOperation *operation, id responseObject))successBlock
@@ -20,7 +22,7 @@
     NSDictionary *parameters = @{@"playerId": @"billyho92@foxmail.com", @"action":@"startGame"};
     
     
-    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on"
+    [manager POST:BASEURL
        parameters:parameters
           success:successBlock
           failure:failureBlock];
@@ -37,7 +39,8 @@
     
     NSDictionary *parameters = @{@"sessionId": sessionId, @"action":action};
     
-    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
+    [manager POST:BASEURL
+       parameters:parameters
           success:successBlock
           failure:failureBlock];
 }
@@ -54,7 +57,8 @@
     NSDictionary *parameters = @{@"sessionId": sessionId, @"action":@"guessWord", @"guess":guessWord};
     
     
-    [manager POST:@"https://strikingly-hangman.herokuapp.com/game/on" parameters:parameters
+    [manager POST:BASEURL
+       parameters:parameters
           success:successBlock
           failure:failureBlock];
 }
